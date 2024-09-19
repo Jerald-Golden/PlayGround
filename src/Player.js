@@ -52,7 +52,9 @@ export function Player() {
                 direction.add(frontVector).add(new THREE.Vector3(-sideVector.x, sideVector.y, sideVector.z)).normalize().multiplyScalar(SPEED * 5)
                 direction.applyEuler(state.camera.rotation)
             }
-
+            if(direction.x ===0 && direction.y === 0 && direction.z ===0){
+                direction.set(0, 0.5, 0)
+            }
             ref.current.setLinvel({ x: direction.x, y: direction.y, z: direction.z })
         } else {
             let speed = SPEED
