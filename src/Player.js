@@ -40,7 +40,7 @@ export function Player() {
     }, [])
 
     useFrame((state) => {
-        const { forward, backward, left, right, jump } = get()
+        const { forward, backward, left, right, jump, shift } = get()
         const velocity = ref.current.linvel()
         state.camera.position.set(...ref.current.translation())
         frontVector.set(0, 0, backward - forward)
@@ -55,7 +55,11 @@ export function Player() {
 
             ref.current.setLinvel({ x: direction.x, y: direction.y, z: direction.z })
         } else {
-            direction.subVectors(frontVector, sideVector).normalize().multiplyScalar(SPEED).applyEuler(state.camera.rotation)
+            let speed = SPEED
+            if (shift) {
+                speed = 10
+            }
+            direction.subVectors(frontVector, sideVector).normalize().multiplyScalar(speed).applyEuler(state.camera.rotation)
             ref.current.setLinvel({ x: direction.x, y: velocity.y, z: direction.z })
             const world = rapier.world.raw()
             const ray = world.castRay(new RAPIER.Ray(ref.current.translation(), { x: 0, y: -1, z: 0 }))

@@ -14,6 +14,7 @@ export default function App() {
         { name: "left", keys: ["ArrowLeft", "a", "A"] },
         { name: "right", keys: ["ArrowRight", "d", "D"] },
         { name: "jump", keys: ["Space"] },
+        { name: "shift", keys: ["ShiftLeft", "ShiftRight"] },
       ]}>
       <Canvas shadows camera={{ fov: 45 }}>
         <Sky sunPosition={[100, 20, 100]} />
