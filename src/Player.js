@@ -49,7 +49,7 @@ export function Player() {
         if (flyMode) {
             direction.set(0, 0, 0)
             if (forward || backward || left || right) {
-                direction.add(frontVector).add(sideVector).normalize().multiplyScalar(SPEED * 2)
+                direction.add(frontVector).add(new THREE.Vector3(-sideVector.x, sideVector.y, sideVector.z)).normalize().multiplyScalar(SPEED * 5)
                 direction.applyEuler(state.camera.rotation)
             }
 
