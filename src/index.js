@@ -5,6 +5,7 @@ import App from "./App"
 function Overlay() {
   return (
     <>
+      <div className="dot" />
       <App />
     </>
   )
