@@ -3,6 +3,8 @@ import { useThree } from "@react-three/fiber";
 import { RigidBody } from "@react-three/rapier";
 import { useState, useEffect } from "react";
 
+import Ring from './Ring';
+
 export function ThrowBall() {
     const { camera, scene } = useThree();
     const [balls, setBalls] = useState([]);
@@ -37,6 +39,7 @@ export function ThrowBall() {
 
     return (
         <>
+
             {balls.map((ball) => (
                 <RigidBody
                     key={ball.id}
@@ -50,6 +53,7 @@ export function ThrowBall() {
                     </mesh>
                 </RigidBody>
             ))}
+            <Ring position={[10, 0.1, 10]} />
         </>
     );
 }

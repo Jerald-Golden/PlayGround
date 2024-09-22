@@ -3,7 +3,7 @@ import { Sky, PointerLockControls, KeyboardControls } from "@react-three/drei"
 import { Physics } from "@react-three/rapier"
 import { Ground } from "./Ground"
 import { Player } from "./Player"
-import { ThrowBall } from "./ThrowBall"
+import { ThrowBall } from "./BallGame/ThrowBall"
 import House from "./House"
 
 export default function App() {
