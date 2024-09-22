@@ -54,7 +54,7 @@ export default function Ring(props) {
 
   return (
     <mesh ref={portalRef} position={props.position} rotation={[-Math.PI / 2, 0, 0]}>
-      <circleGeometry args={[2, 64]} />
+      <circleGeometry args={[2, 128]} />
       <glowingPortalMaterial uColor={new THREE.Color(1.0, 0.0, 4.0)} uOpacity={0.8} uRadius={0.5} />
     </mesh>
   );
