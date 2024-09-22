@@ -11,13 +11,13 @@ export function ThrowBall() {
         const handleThrowBall = () => {
             const position = camera.position.clone();
             const direction = new THREE.Vector3();
-            camera.getWorldDirection(direction);
-
+            camera.getWorldDirection(direction).normalize();
+            const ballStartPosition = position.add(direction.clone().multiplyScalar(1));
             const velocity = direction.multiplyScalar(50);
 
             const newBall = {
                 id: Date.now(),
-                position: [position.x, position.y, position.z],
+                position: [ballStartPosition.x, ballStartPosition.y, ballStartPosition.z],
                 velocity: [velocity.x, velocity.y, velocity.z],
             };
 
