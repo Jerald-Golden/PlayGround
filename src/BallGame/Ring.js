@@ -5,7 +5,6 @@ import { extend, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 
 const GlowingPortalMaterial = shaderMaterial(
-  // Uniforms
   {
     uTime: 0.0,
     uColor: new THREE.Color(0.8, 0.0, 1.0),
@@ -30,11 +29,9 @@ const GlowingPortalMaterial = shaderMaterial(
     varying vec2 vUv;
 
     void main() {
-      // Circular gradient for the glow effect
       float distanceToCenter = distance(vUv, vec2(0.5, 0.5));
-      float glow = smoothstep(uRadius, uRadius - 0.1, distanceToCenter);
-      
-      // Time-based pulsing glow effect
+      float glow = smoothstep(uRadius, uRadius - 0.5, distanceToCenter);
+
       float pulse = 0.5 + 0.5 * sin(uTime * 2.0);
       
       vec3 glowColor = uColor * glow * pulse;
