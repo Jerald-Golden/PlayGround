@@ -7,10 +7,12 @@ import Ring from './Ring';
 export function ThrowBall() {
     const { camera } = useThree();
     const [balls, setBalls] = useState([]);
-    const ringPosition = new THREE.Vector3(10, 0.1, 10);
-    const ringRadius = 2;
 
     useEffect(() => {
+
+        const ringPosition = new THREE.Vector3(10, 0.1, 10);
+        const ringRadius = 2;
+
         const handleThrowBall = () => {
             const cameraPosition = camera.position.clone();
             const distanceToRing = cameraPosition.distanceTo(ringPosition);

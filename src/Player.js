@@ -3,7 +3,7 @@ import * as RAPIER from "@dimforge/rapier3d-compat"
 import { useRef, useState, useEffect } from "react"
 import { useFrame } from "@react-three/fiber"
 import { useKeyboardControls } from "@react-three/drei"
-import { CapsuleCollider, RigidBody, useRapier, Physics } from "@react-three/rapier"
+import { CapsuleCollider, RigidBody, useRapier } from "@react-three/rapier"
 
 const SPEED = 5
 const direction = new THREE.Vector3()
