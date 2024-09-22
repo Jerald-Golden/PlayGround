@@ -3,6 +3,7 @@ import { Sky, PointerLockControls, KeyboardControls } from "@react-three/drei"
 import { Physics } from "@react-three/rapier"
 import { Ground } from "./Ground"
 import { Player } from "./Player"
+import { ThrowBall } from "./ThrowBall"
 import House from "./House"
 
 export default function App() {
@@ -22,6 +23,7 @@ export default function App() {
           <Ground />
           <House />
           <Player />
+          <ThrowBall />
         </Physics>
         <PointerLockControls />
       </Canvas>
