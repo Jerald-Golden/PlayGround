@@ -25,10 +25,14 @@ export function Player() {
     }
 
     useEffect(() => {
-        if (flyMode) {
-            console.log("FLY MODE")
-        } else {
-            console.log("WALK MODE")
+        if (ref.current && ref.current.raw()) {
+            if (flyMode) {
+                ref.current.raw().setGravityScale(0, true)
+                console.log("FLY MODE")
+            } else {
+                ref.current.raw().setGravityScale(1, true)
+                console.log("WALK MODE")
+            }
         }
     }, [flyMode])
 
@@ -52,9 +56,6 @@ export function Player() {
                 direction.add(frontVector).add(new THREE.Vector3(-sideVector.x, sideVector.y, sideVector.z)).normalize().multiplyScalar(SPEED * 5)
                 direction.applyEuler(state.camera.rotation)
             }
-            if (direction.x === 0 && direction.y === 0 && direction.z === 0) {
-                direction.set(0, 0.5, 0)
-            }
             ref.current.setLinvel({ x: direction.x, y: direction.y, z: direction.z })
         } else {
             let speed = SPEED
@@ -74,7 +75,16 @@ export function Player() {
 
     return (
         <>
-            <RigidBody ref={ref} colliders={false} mass={flyMode ? 0 : 1} type="dynamic" position={[0, 0, 10]} enabledRotations={[false, false, false]}>
+            <RigidBody
+                ref={ref}
+                colliders={false}
+                mass={flyMode ? 0 : 1}
+                type="dynamic"
+                position={[0, 0, 10]}
+                enabledRotations={[false, false, false]}
+                collisionFilterGroup={1}
+                collisionFilterMask={2} // Only collide with group 2 (the house)
+            >
                 <CapsuleCollider args={[0.75, 0.5]} />
             </RigidBody>
         </>

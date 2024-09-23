@@ -1,8 +1,7 @@
-import { useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
-import { shaderMaterial } from '@react-three/drei';
-import { extend, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
+import { useRef } from 'react';
+import { shaderMaterial } from '@react-three/drei';
+import { useFrame, extend, useThree } from '@react-three/fiber';
 
 const GlowingPortalMaterial = shaderMaterial(
   {

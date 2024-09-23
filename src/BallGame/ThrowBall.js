@@ -1,22 +1,32 @@
 import * as THREE from 'three';
+import { useState, useEffect, useRef } from "react";
+import { Html } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
 import { RigidBody } from "@react-three/rapier";
-import { useState, useEffect } from "react";
-import { Html } from "@react-three/drei";
 
 import Ring from './Ring';
 import Target from './Target';
 
 export function ThrowBall() {
     const { camera } = useThree();
+    // const { raycaster } = useThree();
     const [balls, setBalls] = useState([]);
     const [isOnRing, setIsOnRing] = useState(false);
     const [canThrow, setCanThrow] = useState(false);
 
-    useEffect(() => {
+    const isOnRingRef = useRef(isOnRing);
 
+    useEffect(() => {
+        isOnRingRef.current = isOnRing;
+    }, [isOnRing]);
+
+    const startButtonRef = useRef();
+    const exitButtonRef = useRef();
+
+    useEffect(() => {
         const ringPosition = new THREE.Vector3(10, 0.1, 10);
         const ringRadius = 2;
+
         const checkPlayerPosition = () => {
             const distanceToRing = camera.position.distanceTo(ringPosition);
             if (distanceToRing <= ringRadius) {
@@ -53,10 +63,22 @@ export function ThrowBall() {
             }
         };
 
+        const handlePointerDown = () => {
+            if (!isOnRingRef.current) return;
+
+            // const pointerPosition = new THREE.Vector2(0, 0);
+            // raycaster.setFromCamera(pointerPosition, camera);
+            // const intersects = raycaster.intersectObjects([startButtonRef.current, exitButtonRef.current]);
+            // console.log('[startButtonRef.current, exitButtonRef.current]: ', [startButtonRef.current, exitButtonRef.current]);
+            // console.log('intersects: ', intersects);
+        };
+
+        document.addEventListener('pointerdown', handlePointerDown);
         document.addEventListener('click', handleThrowBall);
         const interval = setInterval(checkPlayerPosition, 100);
 
         return () => {
+            document.removeEventListener('pointerdown', handlePointerDown);
             document.removeEventListener('click', handleThrowBall);
             clearInterval(interval);
         };
@@ -74,7 +96,7 @@ export function ThrowBall() {
         <>
             {balls.map((ball) => (
                 <RigidBody key={ball.id} colliders="ball" position={ball.position} linearVelocity={ball.velocity}>
-                    <mesh castShadow={true}>
+                    <mesh>
                         <sphereGeometry args={[0.18, 32, 32]} />
                         <meshStandardMaterial color="red" />
                     </mesh>
@@ -87,17 +109,17 @@ export function ThrowBall() {
 
             {isOnRing && (
                 <>
-                    <mesh>
+                    <mesh ref={startButtonRef}>
                         <Html position={[9.8, 1, 9]}>
                             <div className="button-container">
-                                <button onClick={handleStart} className="button-style">Start</button>
+                                <button className="button-style" onClick={handleStart}>Start</button>
                             </div>
                         </Html>
                     </mesh>
-                    <mesh>
+                    <mesh ref={exitButtonRef}>
                         <Html position={[10.2, 1, 9]}>
                             <div className="button-container">
-                                <button onClick={handleExit} className="button-style">Exit</button>
+                                <button className="button-style" onClick={handleExit}>Exit</button>
                             </div>
                         </Html>
                     </mesh>

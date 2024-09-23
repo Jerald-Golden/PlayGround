@@ -1,8 +1,8 @@
-import { RigidBody } from '@react-three/rapier';
 import { useRef } from 'react';
+import { RigidBody } from '@react-three/rapier';
 
 const TorusShaderMaterial = {
-    vertexShader: `
+  vertexShader: `
     varying vec2 vUv;
 
     void main() {
@@ -10,7 +10,7 @@ const TorusShaderMaterial = {
       gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
     }
   `,
-    fragmentShader: `
+  fragmentShader: `
     varying vec2 vUv;
 
     void main() {
@@ -22,25 +22,25 @@ const TorusShaderMaterial = {
 };
 
 export default function Target({ position }) {
-    const torusRef = useRef();
+  const torusRef = useRef();
 
-    return (
-        <RigidBody type="fixed" position={position}>
-            <group>
-                <mesh ref={torusRef}>
-                    <torusGeometry args={[0.4, 0.03, 16, 100]} />
-                    <shaderMaterial
-                        attach="material"
-                        vertexShader={TorusShaderMaterial.vertexShader}
-                        fragmentShader={TorusShaderMaterial.fragmentShader}
-                    />
-                </mesh>
+  return (
+    <RigidBody type="fixed" position={position}>
+      <group>
+        <mesh ref={torusRef}>
+          <torusGeometry args={[0.4, 0.03, 16, 100]} />
+          <shaderMaterial
+            attach="material"
+            vertexShader={TorusShaderMaterial.vertexShader}
+            fragmentShader={TorusShaderMaterial.fragmentShader}
+          />
+        </mesh>
 
-                <mesh>
-                    <planeGeometry args={[0.7, 0.7, 8, 8]} />
-                    <meshBasicMaterial color="blue" wireframe />
-                </mesh>
-            </group>
-        </RigidBody>
-    );
+        <mesh>
+          <planeGeometry args={[0.7, 0.7, 8, 8]} />
+          <meshBasicMaterial color="blue" wireframe />
+        </mesh>
+      </group>
+    </RigidBody>
+  );
 }

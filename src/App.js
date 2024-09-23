@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { Canvas } from "@react-three/fiber";
-import { Sky, PointerLockControls, KeyboardControls } from "@react-three/drei";
 import { Physics } from "@react-three/rapier";
+import { Sky, PointerLockControls, KeyboardControls } from "@react-three/drei";
 import { Ground } from "./Ground";
 import { Player } from "./Player";
 import { ThrowBall } from "./BallGame/ThrowBall";
 import House from "./House";
+import Grass from "./Grass";
 
 export default function App() {
   const [controlsEnabled, setControlsEnabled] = useState(true);
@@ -43,6 +44,7 @@ export default function App() {
         <Sky sunPosition={[100, 20, 100]} />
         <Physics gravity={[0, -30, 0]}>
           <Ground />
+          <Grass />
           <House />
           <Player />
           <ThrowBall />
