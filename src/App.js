@@ -1,12 +1,33 @@
-import { Canvas } from "@react-three/fiber"
-import { Sky, PointerLockControls, KeyboardControls } from "@react-three/drei"
-import { Physics } from "@react-three/rapier"
-import { Ground } from "./Ground"
-import { Player } from "./Player"
-import { ThrowBall } from "./BallGame/ThrowBall"
-import House from "./House"
+import { useState, useEffect } from "react";
+import { Canvas } from "@react-three/fiber";
+import { Sky, PointerLockControls, KeyboardControls } from "@react-three/drei";
+import { Physics } from "@react-three/rapier";
+import { Ground } from "./Ground";
+import { Player } from "./Player";
+import { ThrowBall } from "./BallGame/ThrowBall";
+import House from "./House";
 
 export default function App() {
+  const [controlsEnabled, setControlsEnabled] = useState(true);
+  const [cooldown, setCooldown] = useState(false);
+
+  useEffect(() => {
+    const handlePointerLockChange = () => {
+      if (document.pointerLockElement === null) {
+        setCooldown(true);
+        setControlsEnabled(false);
+        setTimeout(() => {
+          setCooldown(false);
+          setControlsEnabled(true);
+        }, 1500);
+      }
+    };
+    document.addEventListener('pointerlockchange', handlePointerLockChange);
+    return () => {
+      document.removeEventListener('pointerlockchange', handlePointerLockChange);
+    };
+  }, []);
+
   return (
     <KeyboardControls
       map={[
@@ -16,7 +37,8 @@ export default function App() {
         { name: "right", keys: ["ArrowRight", "d", "D"] },
         { name: "jump", keys: ["Space"] },
         { name: "shift", keys: ["ShiftLeft", "ShiftRight"] },
-      ]}>
+      ]}
+    >
       <Canvas shadows camera={{ fov: 45 }}>
         <Sky sunPosition={[100, 20, 100]} />
         <Physics gravity={[0, -30, 0]}>
@@ -25,8 +47,8 @@ export default function App() {
           <Player />
           <ThrowBall />
         </Physics>
-        <PointerLockControls />
+        {controlsEnabled && !cooldown && <PointerLockControls />}
       </Canvas>
     </KeyboardControls>
-  )
+  );
 }

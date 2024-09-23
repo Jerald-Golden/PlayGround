@@ -26,3 +26,21 @@ body {
   border: 2px solid black;
   z-index: 10;
 }
+
+.button-container {
+  display: flex;
+  gap: 20px;
+}
+
+.button-style {
+  padding: 10px 20px;
+  background-color: #333;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.button-style:hover {
+  background-color: #555;
+}
