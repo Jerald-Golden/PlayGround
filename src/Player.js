@@ -75,16 +75,7 @@ export function Player() {
 
     return (
         <>
-            <RigidBody
-                ref={ref}
-                colliders={false}
-                mass={flyMode ? 0 : 1}
-                type="dynamic"
-                position={[0, 0, 10]}
-                enabledRotations={[false, false, false]}
-                collisionFilterGroup={1}
-                collisionFilterMask={2} // Only collide with group 2 (the house)
-            >
+            <RigidBody ref={ref} colliders={false} mass={flyMode ? 0 : 1} type="dynamic" position={[0, 0, 10]} enabledRotations={[false, false, false]}>
                 <CapsuleCollider args={[0.75, 0.5]} />
             </RigidBody>
         </>
