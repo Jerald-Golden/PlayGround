@@ -4,7 +4,7 @@ import { useKeyboardControls } from "@react-three/drei";
 import { RigidBody } from "@react-three/rapier";
 import { useMemo, useEffect, useState, useRef } from "react";
 
-function useFollowCam(ref, offset) {
+function CamControls(ref, offset) {
     const { scene, camera } = useThree();
     const pivot = useMemo(() => new THREE.Object3D(), []);
     const alt = useMemo(() => new THREE.Object3D(), []);
@@ -68,7 +68,7 @@ export function Player() {
     const playerRef = useRef(null);
     const mesh = useRef();
 
-    useFollowCam(playerRef, [0, 1.5, 4]);
+    CamControls(playerRef, [0, 1.5, 4]);
 
     useEffect(() => {
         const mouseMove = (e) => {
@@ -129,7 +129,12 @@ export function Player() {
             movement.addScaledVector(rightDirection, speed);
         }
 
-        playerRef.current.setLinvel({ x: movement.x, y: playerRef.current.linvel().y, z: movement.z });
+        const currentVelocity = playerRef.current.linvel();
+        playerRef.current.setLinvel({ x: movement.x, y: currentVelocity.y, z: movement.z, });
+
+        if (jump && Math.abs(currentVelocity.y) < 0.01) {
+            playerRef.current.applyImpulse({ x: 0, y: 5, z: 0 }, true);
+        }
 
         direction.y = 0;
         direction.normalize();
@@ -138,7 +143,7 @@ export function Player() {
     });
 
     return (
-        <RigidBody ref={playerRef} colliders="cuboid" mass={0} position={[0, 0, 10]} restitution={0}>
+        <RigidBody ref={playerRef} type="dynamic" colliders="cuboid" mass={1} position={[0, 0, 10]} restitution={0}>
             <mesh ref={mesh} userData={{ tag: "player" }} position={[0, 0.65, 0]}>
                 <capsuleGeometry args={[0.25, 0.75]} />
                 <meshBasicMaterial />
