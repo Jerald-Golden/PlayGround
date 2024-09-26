@@ -1,9 +1,9 @@
 import * as THREE from "three";
 import { useFrame, useThree } from "@react-three/fiber";
-import { useKeyboardControls, useGLTF } from "@react-three/drei";
+import { useKeyboardControls } from "@react-three/drei";
 import { RigidBody } from "@react-three/rapier";
 import { useMemo, useEffect, useState, useRef } from "react";
-import IdleModel from "../resources/idle.glb";
+// import IdleModel from "../resources/idle.glb";
 
 import { CamControls } from "./CamControls";
 
@@ -16,25 +16,25 @@ export function Player() {
     const playerRef = useRef(null);
     const [isJumping, setIsJumping] = useState(false);
     const [jumpVelocity, setJumpVelocity] = useState(0);
-    const model = useGLTF(IdleModel);
+    // const model = useGLTF(IdleModel);
     const mesh = useRef();
-    const mixer = useRef();
+    // const mixer = useRef();
     const jumpSpeed = 4.5;
     const gravity = -9.8;
 
     CamControls(playerRef, [0, 1.5, 4]);
 
-    useEffect(() => {
-        if (model.animations.length > 0) {
-            mixer.current = new THREE.AnimationMixer(model.scene);
-            const action = mixer.current.clipAction(model.animations[0]);
-            action.play();
-        }
-    }, [model]);
+    // useEffect(() => {
+    //     if (model.animations.length > 0) {
+    //         mixer.current = new THREE.AnimationMixer(model.scene);
+    //         const action = mixer.current.clipAction(model.animations[0]);
+    //         action.play();
+    //     }
+    // }, [model]);
 
-    useFrame((_, delta) => {
-        if (mixer.current) mixer.current.update(delta);
-    });
+    // useFrame((_, delta) => {
+    //     if (mixer.current) mixer.current.update(delta);
+    // });
 
     useEffect(() => {
         const mouseMove = (e) => {
@@ -72,7 +72,7 @@ export function Player() {
             document.removeEventListener("click", capture);
             document.removeEventListener("pointerlockchange", handlePointerLockChange);
         };
-    }, [cooldown, isLocked]);
+    }, [cooldown, isLocked, mouse]);
 
     useFrame(() => {
         if (!playerRef.current || !mesh.current) return;
@@ -123,12 +123,12 @@ export function Player() {
 
     return (
         <RigidBody ref={playerRef} type="kinematicVelocity" colliders="hull" mass={1} position={[0, 0, 10]} restitution={0}>
-            {/* <mesh ref={mesh} userData={{ tag: "player" }} position={[0, 0.65, 0]}>
+            <mesh ref={mesh} userData={{ tag: "player" }} position={[0, 0.65, 0]}>
                 <capsuleGeometry args={[0.25, 0.75]} />
                 <meshBasicMaterial />
-            </mesh> */}
-            <primitive ref={mesh} object={model.scene} scale={0.45} />
+            </mesh>
+            {/* <primitive ref={mesh} object={model.scene} scale={0.45} /> */}
         </RigidBody>
     );
 }
-useGLTF.preload(IdleModel);
+// useGLTF.preload(IdleModel);
