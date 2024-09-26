@@ -2,7 +2,7 @@ import { Canvas } from "@react-three/fiber";
 import { Physics, Debug } from "@react-three/rapier";
 import { Sky, KeyboardControls } from "@react-three/drei";
 import { Ground } from "./Ground";
-import { Player } from "./Player";
+import { Player } from "./Player/Player";
 import { ThrowBall } from "./BallGame/ThrowBall";
 import House from "./House";
 import Grass from "./Grass";
