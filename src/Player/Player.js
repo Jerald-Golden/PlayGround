@@ -127,7 +127,7 @@ export function Player() {
                 <capsuleGeometry args={[0.25, 0.75]} />
                 <meshBasicMaterial />
             </mesh> */}
-            <primitive ref={mesh} object={model.scene} scale={0.45} position={[0, 0.65, 0]} />
+            <primitive ref={mesh} object={model.scene} scale={0.45} />
         </RigidBody>
     );
 }
