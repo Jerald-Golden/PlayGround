@@ -60,6 +60,7 @@ function useFollowCam(ref, offset) {
 }
 
 export function Player() {
+    const { scene, camera } = useThree();
     const [, get] = useKeyboardControls();
     const mouse = useMemo(() => ({ x: 0, y: 0 }), []);
     const [cooldown, setCooldown] = useState(false);
@@ -71,10 +72,7 @@ export function Player() {
 
     useEffect(() => {
         const mouseMove = (e) => {
-            if (
-                document.pointerLockElement === document.body ||
-                document.mozPointerLockElement === document.body
-            ) {
+            if (document.pointerLockElement === document.body || document.mozPointerLockElement === document.body) {
                 mouse.x += e.movementX;
                 mouse.y += e.movementY;
             }
@@ -82,10 +80,7 @@ export function Player() {
 
         const capture = () => {
             if (!cooldown && !isLocked) {
-                document.body.requestPointerLock =
-                    document.body.requestPointerLock ||
-                    document.body.mozRequestPointerLock ||
-                    document.body.webkitRequestPointerLock;
+                document.body.requestPointerLock = document.body.requestPointerLock || document.body.mozRequestPointerLock || document.body.webkitRequestPointerLock;
                 document.body.requestPointerLock();
             }
         };
@@ -118,12 +113,21 @@ export function Player() {
 
         const { forward, backward, left, right, jump, shift } = get();
         const speed = shift ? 10 : 5;
-        const movement = new THREE.Vector3();
 
-        if (forward) movement.z -= speed;
-        if (backward) movement.z += speed;
-        if (left) movement.x -= speed;
-        if (right) movement.x += speed;
+        const direction = new THREE.Vector3();
+        camera.getWorldDirection(direction);
+
+        const movement = new THREE.Vector3();
+        if (forward) movement.addScaledVector(direction, speed);
+        if (backward) movement.addScaledVector(direction, -speed);
+        if (left) {
+            const rightDirection = new THREE.Vector3().crossVectors(direction, new THREE.Vector3(0, 1, 0));
+            movement.addScaledVector(rightDirection, -speed);
+        }
+        if (right) {
+            const rightDirection = new THREE.Vector3().crossVectors(direction, new THREE.Vector3(0, 1, 0));
+            movement.addScaledVector(rightDirection, speed);
+        }
 
         playerRef.current.setLinvel({ x: movement.x, y: playerRef.current.linvel().y, z: movement.z });
     });
