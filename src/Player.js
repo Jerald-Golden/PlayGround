@@ -66,7 +66,12 @@ export function Player() {
     const [cooldown, setCooldown] = useState(false);
     const [isLocked, setIsLocked] = useState(false);
     const playerRef = useRef(null);
+    const [isJumping, setIsJumping] = useState(false);
+    const [jumpVelocity, setJumpVelocity] = useState(0);
     const mesh = useRef();
+
+    const jumpSpeed = 4.5;
+    const gravity = -9.8;
 
     CamControls(playerRef, [0, 1.5, 4]);
 
@@ -132,8 +137,21 @@ export function Player() {
         const currentVelocity = playerRef.current.linvel();
         playerRef.current.setLinvel({ x: movement.x, y: currentVelocity.y, z: movement.z, });
 
-        if (jump && Math.abs(currentVelocity.y) < 0.01) {
-            playerRef.current.applyImpulse({ x: 0, y: 5, z: 0 }, true);
+        if (jump && !isJumping) {
+            setIsJumping(true);
+            setJumpVelocity(jumpSpeed);
+        }
+
+        if (isJumping) {
+            const delta = jumpVelocity * 0.02;
+            mesh.current.position.y += delta;
+            setJumpVelocity((prev) => prev + gravity * 0.02);
+
+            if (mesh.current.position.y <= 0.65) {
+                mesh.current.position.y = 0.65;
+                setIsJumping(false);
+                setJumpVelocity(0);
+            }
         }
 
         direction.y = 0;
@@ -143,7 +161,7 @@ export function Player() {
     });
 
     return (
-        <RigidBody ref={playerRef} type="dynamic" colliders="cuboid" mass={1} position={[0, 0, 10]} restitution={0}>
+        <RigidBody ref={playerRef} type="kinematicVelocity" colliders="cuboid" mass={1} position={[0, 0, 10]} restitution={0}>
             <mesh ref={mesh} userData={{ tag: "player" }} position={[0, 0.65, 0]}>
                 <capsuleGeometry args={[0.25, 0.75]} />
                 <meshBasicMaterial />
