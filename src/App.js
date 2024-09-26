@@ -1,5 +1,5 @@
 import { Canvas } from "@react-three/fiber";
-import { Physics, Debug } from "@react-three/rapier";
+import { Physics } from "@react-three/rapier";
 import { Sky, KeyboardControls } from "@react-three/drei";
 import { Ground } from "./Ground";
 import { Player } from "./Player/Player";
@@ -23,7 +23,6 @@ export default function App() {
       <Canvas shadows camera={{ fov: 45 }}>
         <Sky sunPosition={[100, 20, 100]} />
         <Physics gravity={[0, -9.81, 0]}>
-          <Debug />
           <Ground />
           <Grass />
           <House />
