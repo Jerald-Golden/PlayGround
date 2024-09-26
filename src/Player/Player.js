@@ -32,7 +32,7 @@ export function Player() {
         }
     }, [model]);
 
-    useFrame((delta) => {
+    useFrame((_, delta) => {
         if (mixer.current) mixer.current.update(delta);
     });
 
