@@ -1,7 +1,6 @@
-import { useState, useEffect } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Physics } from "@react-three/rapier";
-import { Sky, PointerLockControls, KeyboardControls } from "@react-three/drei";
+import { Sky, KeyboardControls } from "@react-three/drei";
 import { Ground } from "./Ground";
 import { Player } from "./Player";
 import { ThrowBall } from "./BallGame/ThrowBall";
@@ -9,25 +8,6 @@ import House from "./House";
 import Grass from "./Grass";
 
 export default function App() {
-  const [controlsEnabled, setControlsEnabled] = useState(true);
-  const [cooldown, setCooldown] = useState(false);
-
-  useEffect(() => {
-    const handlePointerLockChange = () => {
-      if (document.pointerLockElement === null) {
-        setCooldown(true);
-        setControlsEnabled(false);
-        setTimeout(() => {
-          setCooldown(false);
-          setControlsEnabled(true);
-        }, 1500);
-      }
-    };
-    document.addEventListener('pointerlockchange', handlePointerLockChange);
-    return () => {
-      document.removeEventListener('pointerlockchange', handlePointerLockChange);
-    };
-  }, []);
 
   return (
     <KeyboardControls
@@ -49,7 +29,6 @@ export default function App() {
           <Player />
           <ThrowBall />
         </Physics>
-        {controlsEnabled && !cooldown && <PointerLockControls />}
       </Canvas>
     </KeyboardControls>
   );

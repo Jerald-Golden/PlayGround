@@ -1,103 +1,139 @@
 import * as THREE from "three";
-import * as RAPIER from "@dimforge/rapier3d-compat";
-import { useRef, useState, useEffect } from "react";
-import { useFrame, useLoader } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
 import { useKeyboardControls } from "@react-three/drei";
-import { CapsuleCollider, RigidBody, useRapier } from "@react-three/rapier";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-import idleModel from "./resources/idle.glb";
+import { RigidBody } from "@react-three/rapier";
+import { useMemo, useEffect, useState, useRef } from "react";
 
-const SPEED = 5;
-const direction = new THREE.Vector3();
-const frontVector = new THREE.Vector3();
-const sideVector = new THREE.Vector3();
+function useFollowCam(ref, offset) {
+    const { scene, camera } = useThree();
+    const pivot = useMemo(() => new THREE.Object3D(), []);
+    const alt = useMemo(() => new THREE.Object3D(), []);
+    const yaw = useMemo(() => new THREE.Object3D(), []);
+    const pitch = useMemo(() => new THREE.Object3D(), []);
+    const worldPosition = useMemo(() => new THREE.Vector3(), []);
+
+    function onDocumentMouseMove(e) {
+        if (document.pointerLockElement) {
+            e.preventDefault();
+            yaw.rotation.y -= e.movementX * 0.002;
+            const v = pitch.rotation.x - e.movementY * 0.002;
+            if (v > -1 && v < 0.1) {
+                pitch.rotation.x = v;
+            }
+        }
+    }
+
+    function onDocumentMouseWheel(e) {
+        if (document.pointerLockElement) {
+            e.preventDefault();
+            const v = camera.position.z + e.deltaY * 0.005;
+            if (v >= 0.5 && v <= 5) {
+                camera.position.z = v;
+            }
+        }
+    }
+
+    useEffect(() => {
+        scene.add(pivot);
+        pivot.add(alt);
+        alt.position.y = offset[1];
+        alt.add(yaw);
+        yaw.add(pitch);
+        pitch.add(camera);
+        camera.position.set(offset[0], 0, offset[2]);
+
+        document.addEventListener("mousemove", onDocumentMouseMove);
+        document.addEventListener("wheel", onDocumentMouseWheel, { passive: false });
+        return () => {
+            document.removeEventListener("mousemove", onDocumentMouseMove);
+            document.removeEventListener("wheel", onDocumentMouseWheel);
+        };
+    }, [camera, offset]);
+
+    useFrame((_, delta) => {
+        if (ref.current) {
+            const pos = ref.current.translation();
+            worldPosition.set(pos.x, pos.y, pos.z);
+            pivot.position.lerp(worldPosition, delta * 5);
+        }
+    });
+}
 
 export function Player() {
-    const ref = useRef();
-    const groupRef = useRef();
-    const mixerRef = useRef();
-    const rapier = useRapier();
     const [, get] = useKeyboardControls();
+    const mouse = useMemo(() => ({ x: 0, y: 0 }), []);
+    const [cooldown, setCooldown] = useState(false);
+    const [isLocked, setIsLocked] = useState(false);
+    const playerRef = useRef(null);
+    const mesh = useRef();
 
-    const [flyMode, setFlyMode] = useState(false);
-
-    const { scene: playerModel, animations } = useLoader(GLTFLoader, idleModel);
-
-    const handleTabPress = (event) => {
-        if (event.key === "Tab") {
-            setFlyMode((prevFlyMode) => !prevFlyMode);
-            event.preventDefault();
-        }
-    };
+    useFollowCam(playerRef, [0, 1.5, 4]);
 
     useEffect(() => {
-        if (ref.current && ref.current.raw()) {
-            if (flyMode) {
-                ref.current.raw().setGravityScale(0, true);
-                console.log("FLY MODE");
-            } else {
-                ref.current.raw().setGravityScale(1, true);
-                console.log("WALK MODE");
+        const mouseMove = (e) => {
+            if (
+                document.pointerLockElement === document.body ||
+                document.mozPointerLockElement === document.body
+            ) {
+                mouse.x += e.movementX;
+                mouse.y += e.movementY;
             }
-        }
-    }, [flyMode]);
-
-    useEffect(() => {
-        window.addEventListener("keydown", handleTabPress);
-        return () => {
-            window.removeEventListener("keydown", handleTabPress);
         };
-    }, []);
 
-    useEffect(() => {
-        if (groupRef.current && playerModel) {
-            groupRef.current.add(playerModel);
-            mixerRef.current = new THREE.AnimationMixer(playerModel);
-            const action = mixerRef.current.clipAction(animations[0]);
-            action.play();
-        }
-    }, [playerModel, animations]);
+        const capture = () => {
+            if (!cooldown && !isLocked) {
+                document.body.requestPointerLock =
+                    document.body.requestPointerLock ||
+                    document.body.mozRequestPointerLock ||
+                    document.body.webkitRequestPointerLock;
+                document.body.requestPointerLock();
+            }
+        };
 
-    useFrame((state, delta) => {
+        const handlePointerLockChange = () => {
+            if (document.pointerLockElement === null) {
+                setIsLocked(false);
+                setCooldown(true);
+                setTimeout(() => {
+                    setCooldown(false);
+                }, 1500);
+            } else {
+                setIsLocked(true);
+            }
+        };
+
+        document.addEventListener("mousemove", mouseMove);
+        document.addEventListener("click", capture);
+        document.addEventListener("pointerlockchange", handlePointerLockChange);
+
+        return () => {
+            document.removeEventListener("mousemove", mouseMove);
+            document.removeEventListener("click", capture);
+            document.removeEventListener("pointerlockchange", handlePointerLockChange);
+        };
+    }, [cooldown, isLocked]);
+
+    useFrame(() => {
+        if (!playerRef.current || !mesh.current) return;
+
         const { forward, backward, left, right, jump, shift } = get();
-        const velocity = ref.current.linvel();
-        state.camera.position.set(...ref.current.translation());
-        frontVector.set(0, 0, backward - forward);
-        sideVector.set(left - right, 0, 0);
+        const speed = shift ? 10 : 5;
+        const movement = new THREE.Vector3();
 
-        if (mixerRef.current) {
-            mixerRef.current.update(delta);
-        }
+        if (forward) movement.z -= speed;
+        if (backward) movement.z += speed;
+        if (left) movement.x -= speed;
+        if (right) movement.x += speed;
 
-        if (flyMode) {
-            direction.set(0, 0, 0);
-            if (forward || backward || left || right) {
-                direction.add(frontVector).add(new THREE.Vector3(-sideVector.x, sideVector.y, sideVector.z)).normalize().multiplyScalar(SPEED * 5);
-                direction.applyEuler(state.camera.rotation);
-            }
-            ref.current.setLinvel({ x: direction.x, y: direction.y, z: direction.z });
-        } else {
-            let speed = SPEED;
-            if (shift) {
-                speed = 10;
-            }
-            direction.subVectors(frontVector, sideVector).normalize().multiplyScalar(speed).applyEuler(state.camera.rotation);
-            ref.current.setLinvel({ x: direction.x, y: velocity.y, z: direction.z });
-            const world = rapier.world.raw();
-            const ray = world.castRay(new RAPIER.Ray(ref.current.translation(), { x: 0, y: -1, z: 0 }));
-            const grounded = ray && ray.collider && Math.abs(ray.toi) <= 1.75;
-            if (jump && grounded) {
-                ref.current.setLinvel({ x: 0, y: 7.5, z: 0 });
-            }
-        }
+        playerRef.current.setLinvel({ x: movement.x, y: playerRef.current.linvel().y, z: movement.z });
     });
 
     return (
-        <>
-            <RigidBody ref={ref} colliders={false} mass={flyMode ? 0 : 1} type="dynamic" position={[0, 0, 10]} enabledRotations={[false, false, false]}>
-                <CapsuleCollider args={[0.75, 0.5]} />
-                <group ref={groupRef} position={[0, -1.25, -3]} scale={0.5} rotation={[0, Math.PI, 0]} />
-            </RigidBody>
-        </>
+        <RigidBody ref={playerRef} colliders="cuboid" mass={0} position={[0, 0, 10]} restitution={0}>
+            <mesh ref={mesh} userData={{ tag: "player" }} position={[0, 0.65, 0]}>
+                <capsuleGeometry args={[0.25, 0.75]} />
+                <meshBasicMaterial />
+            </mesh>
+        </RigidBody>
     );
 }
