@@ -130,6 +130,11 @@ export function Player() {
         }
 
         playerRef.current.setLinvel({ x: movement.x, y: playerRef.current.linvel().y, z: movement.z });
+
+        direction.y = 0;
+        direction.normalize();
+        const angle = Math.atan2(direction.x, direction.z);
+        mesh.current.rotation.y = angle;
     });
 
     return (
