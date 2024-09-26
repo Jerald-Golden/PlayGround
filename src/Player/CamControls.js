@@ -10,26 +10,6 @@ export function CamControls(ref, offset) {
     const pitch = useMemo(() => new THREE.Object3D(), []);
     const worldPosition = useMemo(() => new THREE.Vector3(), []);
 
-    function onDocumentMouseMove(e) {
-        if (document.pointerLockElement) {
-            e.preventDefault();
-            yaw.rotation.y -= e.movementX * 0.002;
-            const v = pitch.rotation.x - e.movementY * 0.002;
-            if (v > -1 && v < 0.1) {
-                pitch.rotation.x = v;
-            }
-        }
-    }
-
-    function onDocumentMouseWheel(e) {
-        if (document.pointerLockElement) {
-            e.preventDefault();
-            const v = camera.position.z + e.deltaY * 0.005;
-            if (v >= 0.5 && v <= 5) {
-                camera.position.z = v;
-            }
-        }
-    }
 
     useEffect(() => {
         scene.add(pivot);
@@ -40,13 +20,34 @@ export function CamControls(ref, offset) {
         pitch.add(camera);
         camera.position.set(offset[0], 0, offset[2]);
 
+        function onDocumentMouseMove(e) {
+            if (document.pointerLockElement) {
+                e.preventDefault();
+                yaw.rotation.y -= e.movementX * 0.002;
+                const v = pitch.rotation.x - e.movementY * 0.002;
+                if (v > -1 && v < 0.1) {
+                    pitch.rotation.x = v;
+                }
+            }
+        }
+
+        function onDocumentMouseWheel(e) {
+            if (document.pointerLockElement) {
+                e.preventDefault();
+                const v = camera.position.z + e.deltaY * 0.005;
+                if (v >= 0.5 && v <= 5) {
+                    camera.position.z = v;
+                }
+            }
+        }
+
         document.addEventListener("mousemove", onDocumentMouseMove);
         document.addEventListener("wheel", onDocumentMouseWheel, { passive: false });
         return () => {
             document.removeEventListener("mousemove", onDocumentMouseMove);
             document.removeEventListener("wheel", onDocumentMouseWheel);
         };
-    }, [camera, offset]);
+    }, [camera, offset, pitch, pivot, scene, yaw, alt]);
 
     useFrame((_, delta) => {
         if (ref.current) {
