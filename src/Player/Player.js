@@ -121,6 +121,7 @@ export default function Player({ position }) {
                     actions['idle'].reset().fadeIn(0.1).play()
                 }
                 if (prevActiveAction.current !== 3 && activeAction === 3) {
+                    actions['idle'].fadeOut(0.1)
                     actions['walk'].fadeOut(0.1)
                     actions['run'].reset().fadeIn(0.1).play();
                 }
