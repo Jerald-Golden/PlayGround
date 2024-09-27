@@ -1,134 +1,165 @@
 import * as THREE from "three";
-import { useFrame, useThree } from "@react-three/fiber";
-import { useKeyboardControls } from "@react-three/drei";
-import { RigidBody } from "@react-three/rapier";
-import { useMemo, useEffect, useState, useRef } from "react";
-// import IdleModel from "../resources/idle.glb";
+import { Suspense } from "react";
+import { useFrame } from "@react-three/fiber";
+import { useCompoundBody, useContactMaterial } from '@react-three/cannon';
+import { useMemo, useRef } from "react";
 
-import { CamControls } from "./CamControls";
+import { Vec3 } from 'cannon-es';
+import useFollowCam from "../Controls/CamControls";
+import useKeyboard from "../Controls/KeyBoardControls";
+import { useStore } from "../store";
 
-export function Player() {
-    const { camera } = useThree();
-    const [, get] = useKeyboardControls();
-    const mouse = useMemo(() => ({ x: 0, y: 0 }), []);
-    const [cooldown, setCooldown] = useState(false);
-    const [isLocked, setIsLocked] = useState(false);
-    const playerRef = useRef(null);
-    const [isJumping, setIsJumping] = useState(false);
-    const [jumpVelocity, setJumpVelocity] = useState(0);
-    // const model = useGLTF(IdleModel);
-    const mesh = useRef();
-    // const mixer = useRef();
-    const jumpSpeed = 4.5;
-    const gravity = -9.8;
+import Character from "./Character";
 
-    CamControls(playerRef, [0, 1.5, 4]);
+export default function Player({ position }) {
+    const playerGrounded = useRef(false)
+    const inJumpAction = useRef(false)
+    const group = useRef()
+    const CamOffset = [0, 1, 5];
+    const { yaw } = useFollowCam(group, CamOffset)
+    const velocity = useMemo(() => new THREE.Vector3(), [])
+    const inputVelocity = useMemo(() => new THREE.Vector3(), [])
+    const euler = useMemo(() => new THREE.Euler(), [])
+    const quat = useMemo(() => new THREE.Quaternion(), [])
+    const targetQuaternion = useMemo(() => new THREE.Quaternion(), [])
+    const worldPosition = useMemo(() => new THREE.Vector3(), [])
+    const raycasterOffset = useMemo(() => new THREE.Vector3(), [])
+    const contactNormal = useMemo(() => new Vec3(0, 0, 0), [])
+    const down = useMemo(() => new Vec3(0, -1, 0), [])
+    const rotationMatrix = useMemo(() => new THREE.Matrix4(), [])
+    const prevActiveAction = useRef(0)
+    const keyboard = useKeyboard()
 
-    // useEffect(() => {
-    //     if (model.animations.length > 0) {
-    //         mixer.current = new THREE.AnimationMixer(model.scene);
-    //         const action = mixer.current.clipAction(model.animations[0]);
-    //         action.play();
-    //     }
-    // }, [model]);
+    const { groundObjects, actions, mixer } = useStore((state) => state)
 
-    // useFrame((_, delta) => {
-    //     if (mixer.current) mixer.current.update(delta);
-    // });
+    useContactMaterial('ground', 'slippery', {
+        friction: 0,
+        restitution: 0.01,
+        contactEquationStiffness: 1e8,
+        contactEquationRelaxation: 3
+    })
 
-    useEffect(() => {
-        const mouseMove = (e) => {
-            if (document.pointerLockElement === document.body || document.mozPointerLockElement === document.body) {
-                mouse.x += e.movementX;
-                mouse.y += e.movementY;
+    const [ref, body] = useCompoundBody(
+        () => ({
+            mass: 1,
+            shapes: [
+                { args: [0.25], position: [0, 0.25, 0], type: 'Sphere' },
+                { args: [0.25], position: [0, 0.75, 0], type: 'Sphere' },
+                { args: [0.2], position: [0, 1, 0], type: 'Sphere' },
+                { args: [0.15], position: [0, 1.25, 0], type: 'Sphere' }
+            ],
+            onCollide: (e) => {
+                if (e.contact.bi.id !== e.body.id) {
+                    contactNormal.set(...e.contact.ni)
+                }
+                if (contactNormal.dot(down) > 0.5) {
+                    if (inJumpAction.current) {
+                        inJumpAction.current = false
+                        actions['jump'].fadeOut(0.1)
+                        actions['idle'].reset().fadeIn(0.1).play()
+                    }
+                }
+            },
+            material: 'slippery',
+            linearDamping: 0,
+            position: position
+        }),
+        useRef()
+    )
+
+    useFrame(({ raycaster }, delta) => {
+        let activeAction = 0
+        body.angularFactor.set(0, 0, 0)
+        ref.current.getWorldPosition(worldPosition)
+        playerGrounded.current = false
+        raycasterOffset.copy(worldPosition)
+        raycasterOffset.y += 0.01
+        raycaster.set(raycasterOffset, down)
+        raycaster.intersectObjects(Object.values(groundObjects), false).forEach((i) => {
+            if (i.distance < 0.021) {
+                playerGrounded.current = true
             }
-        };
-
-        const capture = () => {
-            if (!cooldown && !isLocked) {
-                document.body.requestPointerLock = document.body.requestPointerLock || document.body.mozRequestPointerLock || document.body.webkitRequestPointerLock;
-                document.body.requestPointerLock();
-            }
-        };
-
-        const handlePointerLockChange = () => {
-            if (document.pointerLockElement === null) {
-                setIsLocked(false);
-                setCooldown(true);
-                setTimeout(() => {
-                    setCooldown(false);
-                }, 1500);
-            } else {
-                setIsLocked(true);
-            }
-        };
-
-        document.addEventListener("mousemove", mouseMove);
-        document.addEventListener("click", capture);
-        document.addEventListener("pointerlockchange", handlePointerLockChange);
-
-        return () => {
-            document.removeEventListener("mousemove", mouseMove);
-            document.removeEventListener("click", capture);
-            document.removeEventListener("pointerlockchange", handlePointerLockChange);
-        };
-    }, [cooldown, isLocked, mouse]);
-
-    useFrame(() => {
-        if (!playerRef.current || !mesh.current) return;
-
-        const { forward, backward, left, right, jump, shift } = get();
-        const speed = shift ? 10 : 5;
-
-        const direction = new THREE.Vector3();
-        camera.getWorldDirection(direction);
-
-        const movement = new THREE.Vector3();
-        if (forward) movement.addScaledVector(direction, speed);
-        if (backward) movement.addScaledVector(direction, -speed);
-        if (left) {
-            const rightDirection = new THREE.Vector3().crossVectors(direction, new THREE.Vector3(0, 1, 0));
-            movement.addScaledVector(rightDirection, -speed);
-        }
-        if (right) {
-            const rightDirection = new THREE.Vector3().crossVectors(direction, new THREE.Vector3(0, 1, 0));
-            movement.addScaledVector(rightDirection, speed);
+        })
+        if (!playerGrounded.current) {
+            body.linearDamping.set(0)
+        } else {
+            body.linearDamping.set(0.9999999)
         }
 
-        const currentVelocity = playerRef.current.linvel();
-        playerRef.current.setLinvel({ x: movement.x, y: currentVelocity.y, z: movement.z });
-
-        if (jump && !isJumping) {
-            setIsJumping(true);
-            setJumpVelocity(jumpSpeed);
+        const distance = worldPosition.distanceTo(group.current.position)
+        rotationMatrix.lookAt(worldPosition, group.current.position, group.current.up)
+        targetQuaternion.setFromRotationMatrix(rotationMatrix)
+        if (distance > 0.0001 && !group.current.quaternion.equals(targetQuaternion)) {
+            targetQuaternion.z = 0
+            targetQuaternion.x = 0
+            targetQuaternion.normalize()
+            group.current.quaternion.rotateTowards(targetQuaternion, delta * 20)
         }
+        if (document.pointerLockElement) {
+            inputVelocity.set(0, 0, 0)
+            if (playerGrounded.current) {
+                if (keyboard['KeyW']) { activeAction = 1; inputVelocity.z = -0.25; }
+                if (keyboard['KeyS']) { activeAction = 1; inputVelocity.z = 0.25; }
+                if (keyboard['KeyA']) { activeAction = 1; inputVelocity.x = -0.25; }
+                if (keyboard['KeyD']) { activeAction = 1; inputVelocity.x = 0.25; }
 
-        if (isJumping) {
-            const delta = jumpVelocity * 0.02;
-            mesh.current.position.y += delta;
-            setJumpVelocity((prev) => prev + gravity * 0.02);
-
-            if (mesh.current.position.y <= 0.65) {
-                mesh.current.position.y = 0.65;
-                setIsJumping(false);
-                setJumpVelocity(0);
+                if (keyboard['ShiftLeft']) {
+                    activeAction = 3;
+                    inputVelocity.setLength(delta * 80);
+                }
             }
+
+            if (activeAction !== prevActiveAction.current) {
+                if (prevActiveAction.current !== 1 && activeAction === 1) {
+                    actions['idle'].fadeOut(0.1)
+                    actions['run'].fadeOut(0.1)
+                    actions['walk'].reset().fadeIn(0.1).setEffectiveTimeScale(0.5).play();
+                }
+                if (prevActiveAction.current !== 0 && activeAction === 0) {
+                    actions['walk'].fadeOut(0.1)
+                    actions['run'].fadeOut(0.1)
+                    actions['idle'].reset().fadeIn(0.1).play()
+                }
+                if (prevActiveAction.current !== 3 && activeAction === 3) {
+                    actions['walk'].fadeOut(0.1)
+                    actions['run'].reset().fadeIn(0.1).play();
+                }
+                prevActiveAction.current = activeAction
+            }
+
+            if (keyboard['Space']) {
+                if (playerGrounded.current && !inJumpAction.current) {
+                    activeAction = 2
+                    inJumpAction.current = true
+                    actions['walk'].fadeOut(0.1)
+                    actions['idle'].fadeOut(0.1)
+                    actions['jump'].reset().play()
+                    inputVelocity.y = 6
+                }
+            }
+
+            euler.y = yaw.rotation.y
+            quat.setFromEuler(euler)
+            inputVelocity.applyQuaternion(quat)
+            velocity.set(inputVelocity.x, inputVelocity.y, inputVelocity.z)
+            body.applyImpulse([velocity.x, velocity.y, velocity.z], [0, 0, 0])
         }
 
-        direction.y = 0;
-        direction.normalize();
-        const angle = Math.atan2(direction.x, direction.z);
-        mesh.current.rotation.y = angle;
-    });
+        if (activeAction === 1) {
+            mixer.update(distance / 3)
+        } else {
+            mixer.update(delta)
+        }
+        group.current.position.lerp(worldPosition, 0.3)
+    })
 
     return (
-        <RigidBody ref={playerRef} type="kinematicVelocity" colliders="hull" mass={1} position={[0, 0, 10]} restitution={0}>
-            <mesh ref={mesh} userData={{ tag: "player" }} position={[0, 0.65, 0]}>
-                <capsuleGeometry args={[0.25, 0.75]} />
-                <meshBasicMaterial />
-            </mesh>
-            {/* <primitive ref={mesh} object={model.scene} scale={0.45} /> */}
-        </RigidBody>
-    );
+        <>
+            <group ref={group} position={position}>
+                <Suspense fallback={null}>
+                    <Character />
+                </Suspense>
+            </group>
+        </>
+    )
 }
-// useGLTF.preload(IdleModel);

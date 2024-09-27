@@ -1,35 +1,58 @@
+import { Suspense, useState, useEffect } from "react";
 import { Canvas } from "@react-three/fiber";
-import { Physics } from "@react-three/rapier";
-import { Sky, KeyboardControls } from "@react-three/drei";
-import { Ground } from "./Ground";
-import { Player } from "./Player/Player";
-import { ThrowBall } from "./BallGame/ThrowBall";
+import { Physics } from '@react-three/cannon'
+import { Sky } from "@react-three/drei";
+import Ground from "./Environment/Ground";
+import Light from "./Environment/Lights";
+import Player from "./Player/Player";
 import House from "./House";
 import Grass from "./Grass";
 
 export default function App() {
 
+  const [cooldown, setCooldown] = useState(false);
+  const [isLocked, setIsLocked] = useState(false);
+
+  useEffect(() => {
+    const capture = () => {
+      if (!cooldown && !isLocked) {
+        document.body.requestPointerLock = document.body.requestPointerLock || document.body.mozRequestPointerLock || document.body.webkitRequestPointerLock;
+        document.body.requestPointerLock();
+      }
+    };
+
+    const handlePointerLockChange = () => {
+      if (document.pointerLockElement === null) {
+        setIsLocked(false);
+        setCooldown(true);
+        setTimeout(() => {
+          setCooldown(false);
+        }, 1500);
+      } else {
+        setIsLocked(true);
+      }
+    };
+
+    document.addEventListener("click", capture);
+    document.addEventListener("pointerlockchange", handlePointerLockChange);
+
+    return () => {
+      document.removeEventListener("click", capture);
+      document.removeEventListener("pointerlockchange", handlePointerLockChange);
+    };
+  }, [cooldown, isLocked]);
   return (
-    <KeyboardControls
-      map={[
-        { name: "forward", keys: ["ArrowUp", "w", "W"] },
-        { name: "backward", keys: ["ArrowDown", "s", "S"] },
-        { name: "left", keys: ["ArrowLeft", "a", "A"] },
-        { name: "right", keys: ["ArrowRight", "d", "D"] },
-        { name: "jump", keys: ["Space"] },
-        { name: "shift", keys: ["ShiftLeft", "ShiftRight"] },
-      ]}
-    >
-      <Canvas shadows camera={{ fov: 45 }}>
-        <Sky sunPosition={[100, 20, 100]} />
-        <Physics gravity={[0, -9.81, 0]}>
+    <Canvas shadows camera={{ fov: 45 }}>
+      <Sky sunPosition={[100, 20, 100]} />
+      <Suspense>
+        <Physics>
           <Ground />
-          <Grass />
+          <Light />
+          <Player position={[0, 3, 10]} />
           <House />
-          <Player />
-          <ThrowBall />
+          <Grass />
         </Physics>
-      </Canvas>
-    </KeyboardControls>
+      </Suspense>
+    </Canvas>
   );
 }
