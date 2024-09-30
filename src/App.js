@@ -52,7 +52,7 @@ export default function App() {
           <Player position={[0, 3, 10]} />
           <House />
           {/* </Debug> */}
-          <Grass />
+          {/*<Grass /> */}
         </Physics>
       </Suspense>
     </Canvas>
