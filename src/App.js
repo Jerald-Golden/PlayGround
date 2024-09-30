@@ -6,7 +6,7 @@ import Ground from "./Environment/Ground";
 import Light from "./Environment/Lights";
 import Player from "./Player/Player";
 import House from "./House";
-//import Grass from "./Grass";
+import Grass from "./Grass";
 
 export default function App() {
 
@@ -52,7 +52,7 @@ export default function App() {
           <Player position={[0, 3, 10]} />
           <House />
           {/* </Debug> */}
-          {/*<Grass /> */}
+          <Grass /> 
         </Physics>
       </Suspense>
     </Canvas>
