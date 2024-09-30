@@ -2,19 +2,19 @@ import { useGLTF } from "@react-three/drei";
 import { useEffect, useRef } from "react";
 import { useStore } from "../store";
 
-import evecompressed from "../resources/eve$@walk_compressed.glb";
-import idle from "../resources/idle.glb";
-import walking from "../resources/walking.glb";
-import running from "../resources/running.glb";
-import jump from "../resources/jump.glb";
+import Y from "../resources/Gltf/Y.glb";
+import Yidle from "../resources/Gltf/Yidle.glb";
+import Ywalk from "../resources/Gltf/Ywalk.glb";
+import Yrun from "../resources/Gltf/Yrun.glb";
+import Yjump from "../resources/Gltf/Yjump.glb";
 
 export default function Character() {
     const ref = useRef();
-    const { nodes, materials } = useGLTF(evecompressed)
-    const idleAnimation = useGLTF(idle).animations
-    const walkAnimation = useGLTF(walking).animations
-    const runAnimation = useGLTF(running).animations
-    const jumpAnimation = useGLTF(jump).animations
+    const { nodes, materials } = useGLTF(Y)
+    const idleAnimation = useGLTF(Yidle).animations
+    const walkAnimation = useGLTF(Ywalk).animations
+    const runAnimation = useGLTF(Yrun).animations
+    const jumpAnimation = useGLTF(Yjump).animations
 
     const { actions, mixer } = useStore((state) => state)
 
@@ -30,15 +30,23 @@ export default function Character() {
     return (
         <group ref={ref} dispose={null} castShadow receiveShadow>
             <group name="Scene">
-                <group name="Armature" rotation={[0, 0, 0]} scale={0.01}>
+                <group name="Armature" rotation={[0, 0, 0]} scale={0.007}>
                     <primitive object={nodes.mixamorigHips} />
                     <skinnedMesh
                         castShadow
                         name="Mesh"
                         frustumCulled={false}
-                        geometry={nodes.Mesh.geometry}
-                        material={materials.SpacePirate_M}
-                        skeleton={nodes.Mesh.skeleton}
+                        geometry={nodes.Alpha_Joints.geometry}
+                        material={materials.Alpha_Joints_MAT}
+                        skeleton={nodes.Alpha_Joints.skeleton}
+                    />
+                    <skinnedMesh
+                        castShadow
+                        name="Mesh"
+                        frustumCulled={false}
+                        geometry={nodes.Alpha_Surface.geometry}
+                        material={materials.Alpha_Body_MAT}
+                        skeleton={nodes.Alpha_Surface.skeleton}
                     />
                 </group>
             </group>
@@ -46,4 +54,4 @@ export default function Character() {
     )
 }
 
-useGLTF.preload([evecompressed, idle, walking, jump])
+useGLTF.preload([Y, Yidle, Ywalk, Yrun, Yjump])

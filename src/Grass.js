@@ -1,8 +1,8 @@
 import * as THREE from "three"
 import React, { useRef, useMemo } from "react"
 import { extend, useFrame, useLoader } from "@react-three/fiber"
-import bladeDiffuse from "./resources/blade_diffuse.jpg"
-import bladeAlpha from "./resources/blade_alpha.jpg"
+import bladeDiffuse from "./resources/Images/blade_diffuse.jpg"
+import bladeAlpha from "./resources/Images/blade_alpha.jpg"
 import { shaderMaterial } from "@react-three/drei"
 
 const GrassMaterial = shaderMaterial(

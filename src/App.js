@@ -48,8 +48,10 @@ export default function App() {
         <Physics>
           <Ground />
           <Light />
+          {/* <Debug> */}
           <Player position={[0, 3, 10]} />
           <House />
+          {/* </Debug> */}
           <Grass />
         </Physics>
       </Suspense>
