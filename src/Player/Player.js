@@ -46,16 +46,11 @@ export default function Player({ position }) {
                 { args: [0.2, 0.2, 1.05], position: [0, 0.53, 0], type: 'Cylinder' },
                 { args: [0.13], position: [0, 1.15, 0], type: 'Sphere' }
             ],
-            onCollide: (e) => {
-                if (e.contact.bi.id !== e.body.id) {
-                    contactNormal.set(...e.contact.ni)
-                }
-                if (contactNormal.dot(down) === 0) {
-                    if (inJumpAction.current) {
-                        inJumpAction.current = false
-                        actions['jump'].fadeOut(0.1)
-                        actions['idle'].reset().fadeIn(0.1).play()
-                    }
+            onCollide: () => {
+                if (inJumpAction.current) {
+                    inJumpAction.current = false;
+                    actions['jump'].fadeOut(1);
+                    actions['idle'].reset().fadeIn(0.1).play();
                 }
             },
             material: 'slippery',
@@ -105,14 +100,20 @@ export default function Player({ position }) {
         if (document.pointerLockElement) {
             inputVelocity.set(0, 0, 0);
             if (playerGrounded.current) {
-                if (keyboard['KeyW']) { activeAction = 1; inputVelocity.z = -movementSpeed * delta; }
-                if (keyboard['KeyS']) { activeAction = 1; inputVelocity.z = movementSpeed * delta; }
-                if (keyboard['KeyA']) { activeAction = 1; inputVelocity.x = -movementSpeed * delta; }
-                if (keyboard['KeyD']) { activeAction = 1; inputVelocity.x = movementSpeed * delta; }
+                inputVelocity.set(0, 0, 0);
 
-                if (keyboard['ShiftLeft']) {
-                    activeAction = 3;
-                    inputVelocity.setLength(movementSpeed * delta * 2);
+                if (keyboard['KeyW']) { inputVelocity.z = -1; activeAction = 1; }
+                if (keyboard['KeyS']) { inputVelocity.z = 1; activeAction = 1; }
+                if (keyboard['KeyA']) { inputVelocity.x = -1; activeAction = 1; }
+                if (keyboard['KeyD']) { inputVelocity.x = 1; activeAction = 1; }
+
+                if (inputVelocity.length() > 0) {
+                    inputVelocity.normalize().multiplyScalar(movementSpeed * delta);
+
+                    if (keyboard['ShiftLeft']) {
+                        inputVelocity.multiplyScalar(2);
+                        activeAction = 3;
+                    }
                 }
             }
 
