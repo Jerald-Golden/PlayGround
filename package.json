@@ -3,15 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@react-three/cannon": "^6.6.0",
     "@react-three/csg": "^3.2.0",
-    "@react-three/drei": "9.34.4",
-    "@react-three/fiber": "8.8.10",
-    "cannon-es": "^0.20.0",
+    "@react-three/drei": "^9.114.6",
+    "@react-three/fiber": "^8.17.10",
+    "@react-three/rapier": "^1.5.0",
+    "ecctrl": "^1.0.90",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-scripts": "5.0.1",
-    "three": "0.145.0",
+    "three": "^0.169.0",
     "zustand": "^4.5.4"
   },
   "scripts": {

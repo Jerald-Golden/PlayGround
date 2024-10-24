@@ -1,26 +1,33 @@
-import { Suspense, useState, useEffect } from "react";
+import { Suspense, useEffect } from "react";
+import { useState } from "react";
 import { Canvas } from "@react-three/fiber";
-import { Physics } from '@react-three/cannon'
-import { Sky } from "@react-three/drei";
+import { Physics } from "@react-three/rapier";
+import { Sky, KeyboardControls } from "@react-three/drei";
 import Ground from "./Environment/Ground";
 import Light from "./Environment/Lights";
 import Player from "./Player/Player";
 import House from "./House";
 import Grass from "./Grass";
 
+import { useGame } from "ecctrl";
+
 export default function App() {
+
+  const jumpAnimation = useGame((state) => state.jump);
+
+  const keyboardMap = [
+    { name: 'forward', keys: ['ArrowUp', 'KeyW'] },
+    { name: 'backward', keys: ['ArrowDown', 'KeyS'] },
+    { name: 'leftward', keys: ['ArrowLeft', 'KeyA'] },
+    { name: 'rightward', keys: ['ArrowRight', 'KeyD'] },
+    { name: 'jump', keys: ['Space'] },
+    { name: 'run', keys: ['Shift'] }
+  ];
 
   const [cooldown, setCooldown] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
 
   useEffect(() => {
-    const capture = () => {
-      if (!cooldown && !isLocked) {
-        document.body.requestPointerLock = document.body.requestPointerLock || document.body.mozRequestPointerLock || document.body.webkitRequestPointerLock;
-        document.body.requestPointerLock();
-      }
-    };
-
     const handlePointerLockChange = () => {
       if (document.pointerLockElement === null) {
         setIsLocked(false);
@@ -29,30 +36,40 @@ export default function App() {
           setCooldown(false);
         }, 1500);
       } else {
+        jumpAnimation()
         setIsLocked(true);
       }
     };
 
-    document.addEventListener("click", capture);
     document.addEventListener("pointerlockchange", handlePointerLockChange);
 
     return () => {
-      document.removeEventListener("click", capture);
       document.removeEventListener("pointerlockchange", handlePointerLockChange);
     };
-  }, [cooldown, isLocked]);
+  }, []);
+
+  const handlePointerDown = (e) => {
+    if (e.pointerType === "mouse" && !cooldown) {
+      e.target.requestPointerLock();
+    }
+  };
+
   return (
-    <Canvas shadows camera={{ fov: 45 }}>
+    <Canvas
+      shadows
+      camera={{ fov: 45 }}
+      onPointerDown={handlePointerDown}
+    >
       <Sky sunPosition={[100, 20, 100]} />
       <Suspense>
-        <Physics>
+        <Physics debug={true}>
           <Ground />
           <Light />
-          {/* <Debug> */}
-          <Player position={[0, 3, 10]} />
+          <KeyboardControls map={keyboardMap}>
+            <Player />
+          </KeyboardControls>
           <House />
-          {/* </Debug> */}
-          <Grass /> 
+          <Grass />
         </Physics>
       </Suspense>
     </Canvas>
