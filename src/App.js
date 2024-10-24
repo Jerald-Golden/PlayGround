@@ -26,6 +26,17 @@ export default function App() {
 
   const [cooldown, setCooldown] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
+  const [debug, setDebug] = useState(false);
+
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (event.key === "`") {
+        setDebug((prevDebug) => !prevDebug);
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   useEffect(() => {
     const handlePointerLockChange = () => {
@@ -46,7 +57,7 @@ export default function App() {
     return () => {
       document.removeEventListener("pointerlockchange", handlePointerLockChange);
     };
-  }, []);
+  }, [setIsLocked, jumpAnimation, isLocked]);
 
   const handlePointerDown = (e) => {
     if (e.pointerType === "mouse" && !cooldown) {
@@ -62,7 +73,7 @@ export default function App() {
     >
       <Sky sunPosition={[100, 20, 100]} />
       <Suspense>
-        <Physics debug={true}>
+        <Physics gravity={[0, -9.81, 0]} debug={debug}>
           <Ground />
           <Light />
           <KeyboardControls map={keyboardMap}>

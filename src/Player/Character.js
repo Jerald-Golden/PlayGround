@@ -39,7 +39,7 @@ export default function CharacterModel() {
         clips[5].name = "Jump_Idle";
 
         return clips;
-    }, [idleGLTF.animations, walkGLTF.animations, runGLTF.animations, jumpstartGLTF.animations, jumpendGLTF.animations]);
+    }, [idleGLTF, walkGLTF, runGLTF, jumpstartGLTF, jumpendGLTF, jumpGLTF]);
 
     const group = useRef();
 
@@ -51,18 +51,18 @@ export default function CharacterModel() {
         (state) => state.initializeAnimationSet
     );
 
-    const animationSet = {
+    const animationSet = useMemo(() => ({
         idle: "Idle",
         walk: "Walk",
         run: "Run",
         jump: "Jump_Start",
         jumpLand: "Jump_Land",
         jumpIdle: "Jump_Idle",
-    };
+    }), []);
 
     useEffect(() => {
         initializeAnimationSet(animationSet);
-    }, []);
+    }, [animationSet, initializeAnimationSet]);
 
     useEffect(() => {
         const action = actions[curAnimation ? curAnimation : animationSet.idle];
@@ -84,7 +84,7 @@ export default function CharacterModel() {
             );
             (action)._mixer._listeners = [];
         };
-    }, [curAnimation]);
+    }, [curAnimation, actions, animationSet, resetAnimation]);
 
     return (
         <Suspense fallback={null}>
