@@ -86,7 +86,7 @@ export default function App() {
             <Light />
             <KeyboardControls map={keyboardMap}>
               <Map mapType={mapType} />
-              <Player position={[10, 1.5, 0]} />
+              <Player key={mapType} position={[10, 1.5, 0]} />
             </KeyboardControls>
           </Physics>
         </Suspense>

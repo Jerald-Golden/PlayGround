@@ -11,7 +11,7 @@ export default function Level2() {
     return (
         scene && (
             <>
-                <RigidBody position={[10, 0, 0]} type="fixed" ref={Gltf}>
+                <RigidBody position={[10, 2, 0]} type="fixed" ref={Gltf}>
                     <mesh castShadow receiveShadow scale={[0.6, 0.6, 0.6]}>
                         <MeshCollider type="trimesh">
                             <primitive object={scene} />

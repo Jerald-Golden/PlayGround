@@ -88,7 +88,7 @@ export default function CharacterModel() {
 
     return (
         <Suspense fallback={null}>
-            <group ref={group} dispose={null} castShadow receiveShadow position={[0, -0.55, 0]}>
+            <group ref={group} dispose={null} castShadow receiveShadow position={[0, -0.65, 0]}>
                 <group name="Scene">
                     <group name="Armature" rotation={[0, 0, 0]} scale={0.007}>
                         <primitive object={nodes.mixamorigHips} />
