@@ -1,15 +1,11 @@
-import { Suspense, useEffect } from "react";
-import { useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Physics } from "@react-three/rapier";
 import { Sky, KeyboardControls } from "@react-three/drei";
-import Ground from "./Environment/Ground";
+import { useGame } from "ecctrl";
 import Light from "./Environment/Lights";
 import Player from "./Player/Player";
-import House from "./House";
-import Grass from "./Grass";
-
-import { useGame } from "ecctrl";
+import Map from "./Environment/Map";
 
 export default function App() {
 
@@ -27,6 +23,7 @@ export default function App() {
   const [cooldown, setCooldown] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
   const [debug, setDebug] = useState(false);
+  const [mapType, setMapType] = useState("MiniGames");
 
   useEffect(() => {
     function handleKeyDown(event) {
@@ -47,7 +44,7 @@ export default function App() {
           setCooldown(false);
         }, 1500);
       } else {
-        jumpAnimation()
+        jumpAnimation();
         setIsLocked(true);
       }
     };
@@ -65,24 +62,35 @@ export default function App() {
     }
   };
 
+  const handleMapChange = (e) => {
+    setMapType(e.target.value);
+  };
+
   return (
-    <Canvas
-      shadows
-      camera={{ fov: 45 }}
-      onPointerDown={handlePointerDown}
-    >
-      <Sky sunPosition={[100, 20, 100]} />
-      <Suspense>
-        <Physics gravity={[0, -9.81, 0]} debug={debug}>
-          <Ground />
-          <Light />
-          <KeyboardControls map={keyboardMap}>
-            <Player />
-          </KeyboardControls>
-          <House />
-          <Grass />
-        </Physics>
-      </Suspense>
-    </Canvas>
+    <>
+      <div style={{ position: "absolute", top: 10, left: 10, zIndex: 1 }}>
+        <label>
+          Select Map:
+          <select value={mapType} onChange={handleMapChange}>
+            <option value="MiniGames">MiniGames</option>
+            <option value="Level1">Level1</option>
+            <option value="Level2">Level2</option>
+          </select>
+        </label>
+      </div>
+
+      <Canvas shadows camera={{ fov: 45 }} onPointerDown={handlePointerDown}>
+        <Sky sunPosition={[100, 20, 100]} />
+        <Suspense>
+          <Physics gravity={[0, -9.81, 0]} debug={debug}>
+            <Light />
+            <KeyboardControls map={keyboardMap}>
+              <Map mapType={mapType} />
+              <Player position={[10, 1.5, 0]} />
+            </KeyboardControls>
+          </Physics>
+        </Suspense>
+      </Canvas>
+    </>
   );
 }
