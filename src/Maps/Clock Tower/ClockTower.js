@@ -2,11 +2,11 @@ import { RigidBody, MeshCollider } from "@react-three/rapier";
 import { useGLTF } from "@react-three/drei";
 import { useRef } from "react";
 
-import ClockTower from '../../resources/Gltf/Map/Clock_Tower.glb';
+import Clock_Tower from '../../resources/Gltf/Map/Clock_Tower.glb';
 
-export default function Clock_Tower() {
+export default function ClockTower() {
     const Gltf = useRef(null);
-    const { scene } = useGLTF(ClockTower);
+    const { scene } = useGLTF(Clock_Tower);
 
     return (    
         scene && (
@@ -23,4 +23,4 @@ export default function Clock_Tower() {
     );
 }
 
-useGLTF.preload(ClockTower);
+useGLTF.preload(Clock_Tower);

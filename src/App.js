@@ -76,6 +76,7 @@ export default function App() {
           <select value={mapType} onChange={handleMapChange}>
             <option value="MiniGames">MiniGames</option>
             <option value="Clock_Tower">Clock Tower</option>
+            <option value="Cs_Go">Cs Go</option>
             <option value="Level1">Level1</option>
             <option value="Level2">Level2</option>
           </select>
