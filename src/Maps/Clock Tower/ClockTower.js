@@ -11,7 +11,7 @@ export default function ClockTower() {
     return (    
         scene && (
             <>
-                <RigidBody  scale={[30, 30, 30]} position={[10, -10, 0]} type="fixed" ref={Gltf}>
+                <RigidBody  scale={[40, 40, 40]} position={[10, -10, 0]} type="fixed" ref={Gltf}>
                     <mesh castShadow receiveShadow>
                         <MeshCollider type="trimesh">
                             <primitive object={scene} />
