@@ -1,7 +1,7 @@
 import { RigidBody } from "@react-three/rapier";
 
 import House from "./House";
-import Grass from "./Grass";
+// import Grass from "./Grass";
 
 export default function MiniGames() {
 
@@ -14,7 +14,7 @@ export default function MiniGames() {
         </mesh>
       </RigidBody>
       <House />
-      <Grass />
+      {/* <Grass /> */}
     </>
   );
 }

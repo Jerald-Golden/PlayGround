@@ -4,22 +4,31 @@ import { Suspense, useEffect, useMemo, useRef } from "react";
 import { useGame } from "ecctrl";
 import { BallCollider } from "@react-three/rapier";
 
-import Y from '../resources/Gltf/Y.glb';
-import Yidle from "../resources/Gltf/Yidle.glb";
-import Ywalk from "../resources/Gltf/Ywalk.glb";
-import Yrun from "../resources/Gltf/Yrun.glb";
-import Yjump from "../resources/Gltf/Yjump.glb";
-import Yjumpstart from "../resources/Gltf/Yjumpstart.glb";
-import Yjumpend from "../resources/Gltf/Yjumpend.glb";
+import Y from '../resources/Gltf/Character/Y.glb';
+import Yidle from "../resources/Gltf/Character/Yidle.glb";
+import Ywalk from "../resources/Gltf/Character/Ywalk.glb";
+import Yrun from "../resources/Gltf/Character/Yrun.glb";
+import Yjump from "../resources/Gltf/Character/Yjump.glb";
+import Yjumpstart from "../resources/Gltf/Character/Yjumpstart.glb";
+import Yjumpend from "../resources/Gltf/Character/Yjumpend.glb";
+import YStandingToCrouched from "../resources/Gltf/Character/YStandingToCrouched.glb";
+import YCrouchedToStanding from "../resources/Gltf/Character/YCrouchedToStanding.glb";
+import YCrouchingIdle from "../resources/Gltf/Character/YCrouchingIdle.glb";
+import YCrouchedWalk from "../resources/Gltf/Character/YCrouchedWalk.glb";
 
 export default function CharacterModel() {
     const { nodes, materials } = useGLTF(Y);
+    const iscrouched = useRef(false);
     const idleGLTF = useGLTF(Yidle);
     const walkGLTF = useGLTF(Ywalk);
     const runGLTF = useGLTF(Yrun);
     const jumpGLTF = useGLTF(Yjump);
     const jumpstartGLTF = useGLTF(Yjumpstart);
     const jumpendGLTF = useGLTF(Yjumpend);
+    const StandingToCrouchedGLTF = useGLTF(YStandingToCrouched);
+    const CrouchedToStandingGLTF = useGLTF(YCrouchedToStanding);
+    const CrouchingIdleGLTF = useGLTF(YCrouchingIdle);
+    const CrouchedWalkGLTF = useGLTF(YCrouchedWalk);
 
     const animations = useMemo(() => {
         const clips = [
@@ -29,6 +38,10 @@ export default function CharacterModel() {
             jumpstartGLTF.animations[0],
             jumpendGLTF.animations[0],
             jumpGLTF.animations[0],
+            StandingToCrouchedGLTF.animations[0],
+            CrouchedToStandingGLTF.animations[0],
+            CrouchingIdleGLTF.animations[0],
+            CrouchedWalkGLTF.animations[0],
         ];
 
         clips[0].name = "Idle";
@@ -37,9 +50,13 @@ export default function CharacterModel() {
         clips[3].name = "Jump_Start";
         clips[4].name = "Jump_Land";
         clips[5].name = "Jump_Idle";
+        clips[6].name = "Standing_To_Crouched";
+        clips[7].name = "Crouched_To_Standing";
+        clips[8].name = "Crouching_Idle";
+        clips[9].name = "Crouched_Walk";
 
         return clips;
-    }, [idleGLTF, walkGLTF, runGLTF, jumpstartGLTF, jumpendGLTF, jumpGLTF]);
+    }, [idleGLTF, walkGLTF, runGLTF, jumpstartGLTF, jumpendGLTF, jumpGLTF, StandingToCrouchedGLTF, CrouchedToStandingGLTF, CrouchingIdleGLTF, CrouchedWalkGLTF]);
 
     const group = useRef();
 
@@ -58,6 +75,10 @@ export default function CharacterModel() {
         jump: "Jump_Start",
         jumpLand: "Jump_Land",
         jumpIdle: "Jump_Idle",
+        action1: 'Standing_To_Crouched',
+        action2: 'Crouched_To_Standing',
+        action3: 'Crouching_Idle',
+        action4: 'Crouched_Walk',
     }), []);
 
     useEffect(() => {
@@ -65,26 +86,54 @@ export default function CharacterModel() {
     }, [animationSet, initializeAnimationSet]);
 
     useEffect(() => {
-        const action = actions[curAnimation ? curAnimation : animationSet.idle];
+        let action = actions[curAnimation ? curAnimation : animationSet.idle];
 
-        if (curAnimation === animationSet.jump || curAnimation === animationSet.jumpLand) {
-            action.reset().fadeIn(0.2).setLoop(THREE.LoopOnce, undefined).play();
+        if ((curAnimation === animationSet.walk || curAnimation === animationSet.run) && iscrouched.current) {
+            actions[animationSet.action3].fadeOut(0.2);
+            action = actions[animationSet.action4];
+            action.reset().fadeIn(0.2).play();
             action.clampWhenFinished = true;
-        } else {
+        } else if (iscrouched.current && curAnimation === animationSet.idle) {
+            actions[animationSet.action3].fadeOut(0.2);
+            action = actions[animationSet.action3];
+            action.reset().fadeIn(0.2).play();
+            action.clampWhenFinished = true;
+        } else if (curAnimation === animationSet.action2 && !iscrouched.current) {
+            iscrouched.current = true;
+            action = actions[animationSet.action1];
+            action.reset().fadeIn(0.2).setLoop(THREE.LoopOnce).play();
+            action.clampWhenFinished = true;
+
+            action._mixer.addEventListener("finished", () => {
+                actions[animationSet.action3].reset().setLoop(THREE.LoopRepeat).play();
+            });
+        } else if (curAnimation === animationSet.action2 && iscrouched.current) {
+            iscrouched.current = false;
+            actions[animationSet.action3].fadeOut(0.2);
+            action = actions[animationSet.action2];
+            action.reset().fadeIn(0.2).setLoop(THREE.LoopOnce).play();
+            action.clampWhenFinished = true;
+
+            action._mixer.addEventListener("finished", () => {
+                actions[animationSet.idle].reset().fadeIn(0.2).play();
+            });
+        } else if (curAnimation === animationSet.jump || curAnimation === animationSet.jumpLand) {
+            action.reset().fadeIn(0.2).setLoop(THREE.LoopOnce).play();
+            action.clampWhenFinished = true;
+        } else if (!iscrouched.current) {
             action.reset().fadeIn(0.2).play();
             action.clampWhenFinished = true;
         }
 
-        (action)._mixer.addEventListener("finished", () => resetAnimation());
+        action._mixer.addEventListener("finished", () => resetAnimation());
 
         return () => {
             action.fadeOut(0.2);
-            (action)._mixer.removeEventListener("finished", () =>
-                resetAnimation()
-            );
-            (action)._mixer._listeners = [];
+            action._mixer.removeEventListener("finished", resetAnimation);
+            action._mixer._listeners = [];
         };
     }, [curAnimation, actions, animationSet, resetAnimation]);
+
 
     return (
         <Suspense fallback={null}>
