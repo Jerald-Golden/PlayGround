@@ -22,5 +22,3 @@ export default function ClockTower() {
         )
     );
 }
-
-useGLTF.preload(Clock_Tower);

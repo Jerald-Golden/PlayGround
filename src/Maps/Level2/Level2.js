@@ -22,5 +22,3 @@ export default function Level2() {
         )
     );
 }
-
-useGLTF.preload(Level2Map);

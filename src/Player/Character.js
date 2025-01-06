@@ -164,5 +164,3 @@ export default function CharacterModel() {
         </Suspense>
     );
 }
-
-useGLTF.preload([Y, Yidle, Ywalk, Yrun, Yjump])

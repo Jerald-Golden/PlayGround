@@ -24,5 +24,3 @@ export default function CsGo() {
         )
     );
 }
-
-useGLTF.preload(Cs_Go);
